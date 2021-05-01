@@ -1,22 +1,35 @@
 import DateRangePicker from "@wojtekmaj/react-daterange-picker";
 import {useState} from "react";
-import {eachDayOfInterval, isSaturday, isSunday} from "date-fns";
+import {eachDayOfInterval, format, isSunday, parseISO} from "date-fns";
+import {FinnishHolidaysEnum} from "./enums/FinnishHolidaysEnum";
+import {map, includes} from 'lodash';
+import {isValidDateRange} from "./DateValidator";
 
 function App() {
   const [dates, setDates] = useState([new Date(), new Date()]);
   const [days, setDays] = useState(0);
 
   const handleDateChange = (newDates) => {
-    setDates(newDates);
-
     const interval = eachDayOfInterval({
       start: newDates[0],
       end: newDates[1],
     });
 
-    const filteredDates = interval.filter(date => !isSunday(date) && !isSaturday(date));
+    if (!isValidDateRange(interval)) {
+      return;
+    }
 
-    console.log(filteredDates);
+    const formattedHolidays = map(FinnishHolidaysEnum, (date) => {
+      return format(date, 'Y-MM-dd');
+    });
+
+    const formattedDates = interval.map(date => {
+      return format(date, 'Y-MM-dd');
+    });
+
+    const filteredDates = formattedDates.filter(date => !isSunday(parseISO(date)) && !includes(formattedHolidays, date));
+
+    setDates(newDates);
     setDays(filteredDates.length);
   }
 
