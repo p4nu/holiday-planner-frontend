@@ -1,9 +1,10 @@
 import DateRangePicker from "@wojtekmaj/react-daterange-picker";
 import {useState} from "react";
-import {eachDayOfInterval, format, isSunday, parseISO} from "date-fns";
-import {FinnishHolidaysEnum} from "./enums/FinnishHolidaysEnum";
-import {map, includes} from 'lodash';
-import {isValidDateRange} from "./DateValidator";
+import {eachDayOfInterval} from "date-fns";
+import {isValidDateRange} from "./validators/DateValidator";
+import {Title} from "./components/Title";
+import {DaysSum} from "./components/DaysSum";
+import {filterDates} from "./helpers/DateFilter";
 
 function App() {
   const [dates, setDates] = useState([new Date(), new Date()]);
@@ -16,18 +17,11 @@ function App() {
     });
 
     if (!isValidDateRange(interval)) {
+      setDays(-1);
       return;
     }
 
-    const formattedHolidays = map(FinnishHolidaysEnum, (date) => {
-      return format(date, 'Y-MM-dd');
-    });
-
-    const formattedDates = interval.map(date => {
-      return format(date, 'Y-MM-dd');
-    });
-
-    const filteredDates = formattedDates.filter(date => !isSunday(parseISO(date)) && !includes(formattedHolidays, date));
+    const filteredDates = filterDates(interval);
 
     setDates(newDates);
     setDays(filteredDates.length);
@@ -35,14 +29,14 @@ function App() {
 
   return (
     <>
-      <h1>Holiday planner</h1>
+      <Title heading='Holiday planner'/>
 
       <DateRangePicker
         onChange={handleDateChange}
         value={dates}
       />
 
-      <p>Days needed for selected period: {days.toString()}</p>
+      <DaysSum days={days}/>
     </>
   );
 }
